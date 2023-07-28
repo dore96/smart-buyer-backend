@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <ChainId>7290027600007</ChainId>
+  <SubChainId>002</SubChainId>
+  <StoreId>120</StoreId>
+  <BikoretNo>3</BikoretNo>
+  <DllVerNo>8.0.1.3</DllVerNo>
+  <Items Count="1">
+    <Item>
+      <PriceUpdateDate>2016-10-26 08:30</PriceUpdateDate>
+      <ItemCode>3014260022839</ItemCode>
+      <ItemType>1</ItemType>
+      <ItemName>2מ.אדוונטג' נטורל פרש 40</ItemName>
+      <ManufacturerName>P&amp;G</ManufacturerName>
+      <ManufactureCountry>IN</ManufactureCountry>
+      <ManufacturerItemDescription>2 מברשות שיניים</ManufacturerItemDescription>
+      <UnitQty>יחידה</UnitQty>
+      <Quantity>1.00</Quantity>
+      <bIsWeighted>0</bIsWeighted>
+      <UnitOfMeasure>יחידה</UnitOfMeasure>
+      <QtyInPackage>1</QtyInPackage>
+      <ItemPrice>19.70</ItemPrice>
+      <UnitOfMeasurePrice>19.70</UnitOfMeasurePrice>
+      <AllowDiscount>1</AllowDiscount>
+      <ItemStatus>1</ItemStatus>
+    </Item>
+  </Items>
+</root>
