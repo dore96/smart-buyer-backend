@@ -56,28 +56,18 @@ def createUser():
 
 class CartItem(db.Model):
     __tablename__ = 'cart_items'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_email = db.Column(db.String(100), db.ForeignKey('users_db.email'), nullable=False)
-    item_name = db.Column(db.TEXT, nullable=False)
-    item_price = db.Column(db.NUMERIC, nullable=False)
-    item_code = db.Column(db.TEXT, primary_key=True)
-    manufacturer_item_description = db.Column(db.TEXT)
-    price_update_date = db.Column(db.TIMESTAMP)
-    unit_qty = db.Column(db.TEXT)
-    item_type = db.Column(db.INT)
-    manufacturer_name = db.Column(db.TEXT)
-    manufacture_country = db.Column(db.TEXT)
-    unit_of_measure = db.Column(db.TEXT)
-    quantity = db.Column(db.INT, nullable=False)
-    b_is_weighted = db.Column(db.INT)
-    qty_in_package = db.Column(db.INT)
-    unit_of_measure_price = db.Column(db.NUMERIC)
-    allow_discount = db.Column(db.INT)
-    item_status = db.Column(db.INT)
-    last_update_date = db.Column(db.TEXT)
-    last_update_time = db.Column(db.TEXT)
+    product_name = db.Column(db.String(100), nullable=False)
+    quantity = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Numeric, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
-    def __repr__(self):
-        return f"CartItem: {self.item_name} (User: {self.user_email})"
+    def __init__(self, user_email, product_name, quantity, price):
+        self.user_email = user_email
+        self.product_name = product_name
+        self.quantity = quantity
+        self.price = price
     
 @api.route('/cart', methods=['GET', 'POST'])
 def cart():
@@ -87,21 +77,6 @@ def cart():
         product_name = data.get('product_name')
         quantity = data.get('quantity')
         price = data.get('price')
-        item_code = data.get('item_code')
-        manufacturer_item_description = data.get('manufacturer_item_description')
-        price_update_date = data.get('price_update_date')
-        unit_qty = data.get('unit_qty')
-        item_type = data.get('item_type')
-        manufacturer_name = data.get('manufacturer_name')
-        manufacture_country = data.get('manufacture_country')
-        unit_of_measure = data.get('unit_of_measure')
-        b_is_weighted = data.get('b_is_weighted')
-        qty_in_package = data.get('qty_in_package')
-        unit_of_measure_price = data.get('unit_of_measure_price')
-        allow_discount = data.get('allow_discount')
-        item_status = data.get('item_status')
-        last_update_date = data.get('last_update_date')
-        last_update_time = data.get('last_update_time')
 
         # Check if the user exists
         user = User.query.filter_by(email=user_email).first()
@@ -112,22 +87,8 @@ def cart():
             user_email=user_email,
             item_name=product_name,
             item_price=price,
-            item_code=item_code,
-            manufacturer_item_description=manufacturer_item_description,
-            price_update_date=price_update_date,
-            unit_qty=unit_qty,
-            item_type=item_type,
-            manufacturer_name=manufacturer_name,
-            manufacture_country=manufacture_country,
-            unit_of_measure=unit_of_measure,
-            quantity=quantity,
-            b_is_weighted=b_is_weighted,
-            qty_in_package=qty_in_package,
-            unit_of_measure_price=unit_of_measure_price,
-            allow_discount=allow_discount,
-            item_status=item_status,
-            last_update_date=last_update_date,
-            last_update_time=last_update_time
+            # Add other attributes as needed
+            quantity=quantity
         )
         db.session.add(cart_item)
         db.session.commit()
@@ -143,24 +104,7 @@ def cart():
 
         # Retrieve the user's cart items
         cart_items = CartItem.query.filter_by(user_email=user_email).all()
-        cart_items_data = [{'product_name': item.item_name,
-                            'quantity': item.quantity,
-                            'price': item.item_price,
-                            'item_code': item.item_code,
-                            'manufacturer_item_description': item.manufacturer_item_description,
-                            'price_update_date': item.price_update_date,
-                            'unit_qty': item.unit_qty,
-                            'item_type': item.item_type,
-                            'manufacturer_name': item.manufacturer_name,
-                            'manufacture_country': item.manufacture_country,
-                            'unit_of_measure': item.unit_of_measure,
-                            'b_is_weighted': item.b_is_weighted,
-                            'qty_in_package': item.qty_in_package,
-                            'unit_of_measure_price': item.unit_of_measure_price,
-                            'allow_discount': item.allow_discount,
-                            'item_status': item.item_status,
-                            'last_update_date': item.last_update_date,
-                            'last_update_time': item.last_update_time}
+        cart_items_data = [{'product_name': item.item_name, 'quantity': item.quantity, 'price': item.item_price}
                            for item in cart_items]
         return {'cart_items': cart_items_data}
 
