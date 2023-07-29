@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import bcrypt
 
 db = SQLAlchemy()
 
@@ -18,7 +19,11 @@ class User(db.Model):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
-        self.password = password
+        self.set_password(password)  # Hash the password and store it
+
+    def set_password(self, password):
+        # Hash the provided password and store it in the password field
+        self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
 class CartItem(db.Model):
     __tablename__ = 'cart_items'
