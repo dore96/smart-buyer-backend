@@ -1,26 +1,64 @@
 import os
 import subprocess
+import shutil
 
 # Path to the "xml_reader.py" script
-xml_reader_script = "xml_reader.py"
+xml_reader_script = r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\xml_multiple_reader.py'
 
 # Path to the "shofersal_xml" folder
-xml_folder_path = r"C:\Users\dored\Desktop\smart-buyer-backend\shofersal_xml"
+xml_data_folder_path = r"C:\Users\dored\Desktop\smart buyer backend\xml_data"
 
-# Run the "shufersal_xml_web_scraper.py" script first
-subprocess.run(["python", "shufersal_xml_web_scraper.py"])
+web_scraping_script_path_map = {
+    "zol_begadol": r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\zol_begadol_web_scraper.py',
+    "rami_levi": r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\rami_levi_web_scraper.py',
+    "shufersal": r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\shufersal_xml_web_scraper.py'
+}
 
-# Iterate over the XML files in the "shofersal_xml" folder
-for xml_file in os.listdir(xml_folder_path):
-    if xml_file.endswith(".xml"):
-        # Construct the full path to the XML file
-        xml_file_path = os.path.join(xml_folder_path, xml_file)
+website_url_map = {
+    "rami_levi": "https://url.retail.publishedprices.co.il/login",
+    "shufersal": "http://prices.shufersal.co.il/",
+    "zol_begadol": "https://zolvebegadol.binaprojects.com/Main.aspx"
+}
 
-        # Get the supermarket name from the file name using hyphens ("-")
-        supermarket_name = xml_file.split("-")[1].strip()
+def run_web_scrapers():
+    for chain, script_path in web_scraping_script_path_map.items():
+        # Create a folder for each web scraper
+        scraper_folder_name = f"{chain}_xmls"
+        scraper_folder_path = os.path.join(xml_data_folder_path, scraper_folder_name)
+        if not os.path.exists(scraper_folder_path):
+            os.makedirs(scraper_folder_path)
 
-        # Construct the command to run the "xml_reader.py" script with the XML file path
-        command = ["python", "xml_reader.py", xml_file_path]
+         # Command to run the web scraping script using the Python interpreter
+        command = ["python",script_path,"--output_folder",scraper_folder_path, "--url",website_url_map[chain]]
 
-        # Run the command in a subprocess
-        subprocess.run(command)
+        # Use subprocess to execute the command in a new process
+        try:
+            subprocess.run(command, shell=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error running web scraper for {chain}: {e}")
+
+def process_data_and_insert_into_db():
+    for website, _ in web_scraping_script_path_map.items():
+        scraper_folder_name = f"{website}_xmls"
+        scraper_folder_path = os.path.join(xml_data_folder_path, scraper_folder_name)
+
+        # Run xml_reader_script for each scraper's folder
+        reader_command = ["python",xml_reader_script,"--input_folder",scraper_folder_path]
+
+        try:
+            subprocess.run(reader_command, shell=True)
+        except subprocess.CalledProcessError as e:
+            print(f"Error running xml_reader_script for {scraper_folder_name}: {e}")
+
+        # After inserting data into the database, remove the unnecessary folder
+        try:
+            shutil.rmtree(scraper_folder_path)
+        except OSError as e:
+            print(f"Error removing folder {scraper_folder_path}: {e}")
+
+def main():
+    run_web_scrapers()
+    process_data_and_insert_into_db()
+
+if __name__ == "__main__":
+    main()
