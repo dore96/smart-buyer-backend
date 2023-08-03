@@ -1,13 +1,11 @@
 import os
+import decimal
+import psycopg2
+import argparse
 import xml.etree.ElementTree as ET
 from datetime import datetime
-import psycopg2
 from psycopg2 import sql
 from psycopg2.extras import execute_values
-import os
-import re
-import decimal
-
 
 # PostgreSQL connection settings
 db_settings = {
@@ -16,7 +14,6 @@ db_settings = {
     "user": "postgres",
     "password": "De9654",
 }
-
 
 def parse_item(item_element):
     item_data = {}
@@ -39,19 +36,25 @@ def parse_item(item_element):
             item_data[child.tag] = child.text
     return item_data
 
-
-
 def parse_xml_file(xml_file_path):
     try:
         tree = ET.parse(xml_file_path)
         root = tree.getroot()
 
         chain_id = root.findtext('ChainId')
+        if chain_id is None:
+            chain_id = root.findtext('ChainID')
         sub_chain_id = root.findtext('SubChainId')
+        if sub_chain_id is None:
+            sub_chain_id = root.findtext('SubChainID')
         store_id = root.findtext('StoreId')
-
+        if store_id is None:
+            store_id = root.findtext('StoreID')
+        xml_items = root.findall('.//Item')
+        if not xml_items:
+            xml_items = root.findall('.//Product')
         items = []
-        for item_element in root.findall('.//Item'):
+        for item_element in xml_items:
             item_data = parse_item(item_element)
             item_data['ChainId'] = chain_id
             item_data['SubChainId'] = sub_chain_id
@@ -103,8 +106,6 @@ def create_table(conn):
     conn.cursor().execute(create_table_query)
     conn.commit()
 
-
-
 def insert_data_to_db(items, conn):
     # Define the SQL query to insert or update data in the 'products' table
     insert_query = sql.SQL("""
@@ -139,31 +140,32 @@ def insert_data_to_db(items, conn):
     # Convert the 'items' data into a list of tuples to use with execute_values
     data_to_insert = [
         (
-            item["ChainId"],
-            item["SubChainId"],
-            item["StoreId"],
-            item["ItemName"],
-            item["ItemPrice"],
-            item["ItemCode"],
-            item["ManufacturerItemDescription"],
-            item["PriceUpdateDate"],
-            item["UnitQty"],
-            item["ItemType"],
-            item["ManufacturerName"],
-            item["ManufactureCountry"],
-            item["UnitOfMeasure"],
-            item["Quantity"],
-            item["bIsWeighted"],
-            item["QtyInPackage"],
-            item["UnitOfMeasurePrice"],
-            item["AllowDiscount"],
-            item["ItemStatus"],
+            item.get("ChainId"),
+            item.get("SubChainId"),
+            item.get("StoreId"),
+            item.get("ItemName"),
+            item.get("ItemPrice"),
+            item.get("ItemCode"),
+            item.get("ManufacturerItemDescription"),
+            item.get("PriceUpdateDate"),
+            item.get("UnitQty"),
+            item.get("ItemType"),
+            item.get("ManufacturerName"),
+            item.get("ManufactureCountry"),
+            item.get("UnitOfMeasure"),
+            item.get("Quantity"),
+            item.get("bIsWeighted"),
+            item.get("QtyInPackage"),
+            item.get("UnitOfMeasurePrice"),
+            item.get("AllowDiscount"),
+            item.get("ItemStatus"),
             datetime.now().strftime('%Y-%m-%d'),
             datetime.now().strftime('%H:%M:%S'),
         )
         for item in items
     ]
-
+    # Remove duplicates from the data before inserting
+    data_to_insert = list(set(data_to_insert))
     try:
         # Execute the INSERT query with the data
         with conn.cursor() as cursor:
@@ -173,12 +175,13 @@ def insert_data_to_db(items, conn):
     except psycopg2.Error as e:
         print(f"Error inserting/updating data into the database: {e}")
 
-
-
 if __name__ == "__main__":
-    folder_path = input("Enter the path of the folder containing XML files: ")
-    # Connect to the PostgreSQL database
+    parser = argparse.ArgumentParser(description="Web scraping script for shufersal")
+    parser.add_argument("--input_folder", required=True, help="The download directory")
+    args = parser.parse_args()
+    folder_path = args.input_folder
     try:
+        # Connect to the PostgreSQL database
         conn = psycopg2.connect(**db_settings)
         create_table(conn)
         parse_xml_files_in_folder_to_db(folder_path,conn)

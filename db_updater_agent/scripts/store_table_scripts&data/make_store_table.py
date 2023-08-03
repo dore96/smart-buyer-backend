@@ -6,7 +6,10 @@ import re
 chains_id_map ={
     "שופרסל" :  "7290027600007",
     "רמי לוי" :  "7290058140886",
-    "זול ובגדול" : "7290058173198"
+    "זול ובגדול" : "7290058173198",
+    "ויקטורי" : "7290696200003",
+    "מחסני השוק" : "7290661400001",
+    "סופר ברקת" : "7290875100001"
 }
 
 # PostgreSQL connection settings
@@ -47,6 +50,8 @@ def parse_and_insert_stores_db(root, conn,table_name, chain_id):
         shofersal_data_insertion(root, conn,table_name)
     elif chain_id == chains_id_map["רמי לוי"] or chain_id == chains_id_map["זול ובגדול"]:
         rami_levi_data_insertion(root, conn,table_name, chain_id)
+    elif chain_id == chains_id_map["ויקטורי"] or chain_id == chains_id_map["מחסני השוק"] or chain_id == chains_id_map["סופר ברקת"]:
+        victory_data_insert(root, conn,table_name, chain_id)
 
 def insert_data(conn, table_name, data):
     # SQL command to insert data into the table
@@ -102,6 +107,25 @@ def rami_levi_data_insertion(root, conn, table_name, chain_id):
             print("Stores element not found.")
     else:
         print("SubChain element not found.")
+
+def victory_data_insert(root, conn, table_name, chain_id):
+    subchain = root.find(".//Branches")
+    # Iterate over the XML elements
+    for store in subchain.findall(".//Branch"):
+        data = {
+            "chain_id": chain_id,
+            "subchainid": safe_convert_int(store.findtext("SubChainID")),
+            "storeid": safe_convert_int(store.findtext("StoreID")),
+            "chainname": store.findtext("ChainName"),
+            "subchainname": store.findtext("SubChainName"),
+            "storename": store.findtext("StoreName"),
+            "address": store.findtext("Address"),
+            "city": store.findtext("City"),
+            "zipcode": safe_convert_int(store.findtext("ZIPCode"))
+        }
+        if data["chainname"] == '':
+            data["chainname"] = data["subchainname"] = "סופר ברקת"
+        insert_data(conn, table_name, data)
 
 def get_chain_id(xml_path):
     # Use regular expression to find the number that comes after "Stores" and before the first "-"

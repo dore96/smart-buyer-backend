@@ -6,7 +6,8 @@ import zipfile
 def extract_gz_file(gz_file_path, extraction_directory):
     try:
         with gzip.open(gz_file_path, 'rb') as gz_file:
-            extracted_file_path = os.path.join(extraction_directory, os.path.splitext(os.path.basename(gz_file_path))[0] + '.xml')
+            extracted_file_path = os.path.join(extraction_directory, os.path.splitext(os.path.basename(gz_file_path))[0] +
+                                                ('.xml' if not gz_file_path.endswith('.xml') else ''))
             with open(extracted_file_path, 'wb') as xml_file:
                 shutil.copyfileobj(gz_file, xml_file)
         print(f"Extracted XML file from GZ: {extracted_file_path}")
