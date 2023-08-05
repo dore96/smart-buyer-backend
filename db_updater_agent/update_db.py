@@ -33,19 +33,19 @@ def process_data_and_insert_into_db(web_scraping_script_path_map,xml_data_folder
             print(f"Error running xml_reader_script for {scraper_folder_name}: {e}")
 
         # After inserting data into the database, remove the unnecessary folder
-        try:
-            shutil.rmtree(scraper_folder_path)
-        except OSError as e:
-            print(f"Error removing folder {scraper_folder_path}: {e}")
+        # try:
+        #     shutil.rmtree(scraper_folder_path)
+        # except OSError as e:
+        #     print(f"Error removing folder {scraper_folder_path}: {e}")
 
 def main():
     xml_reader_script = r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\xml_multiple_reader.py'
     xml_data_folder_path = r"C:\Users\dored\Desktop\smart buyer backend\xml_data"
     web_scraping_script_path_map = {
-        "victory" : r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\victory_web_scraper.py',
         "zol_begadol": r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\zol_begadol_web_scraper.py',
         "rami_levi": r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\rami_levi_web_scraper.py',
-        "shufersal": r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\shufersal_xml_web_scraper.py'
+        "shufersal": r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\shufersal_xml_web_scraper.py',
+        "victory" : r'C:\Users\dored\Desktop\smart buyer backend\smart-buyer-backend\db_updater_agent\scripts\web_scrapers\victory_web_scraper.py'
     }
     website_url_map = {
         "victory" : "http://matrixcatalog.co.il/NBCompetitionRegulations.aspx",
@@ -54,7 +54,7 @@ def main():
         "zol_begadol": "https://zolvebegadol.binaprojects.com/Main.aspx"
     }
 
-    run_web_scrapers(web_scraping_script_path_map,xml_data_folder_path,website_url_map)
+    # run_web_scrapers(web_scraping_script_path_map,xml_data_folder_path,website_url_map)
     process_data_and_insert_into_db(web_scraping_script_path_map,xml_data_folder_path,xml_reader_script)
 
 if __name__ == "__main__":

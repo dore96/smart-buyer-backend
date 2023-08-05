@@ -41,3 +41,31 @@ class Cart(db.Model):
         self.quantity = quantity
         self.category = category
 
+class Product(db.Model):
+    __tablename__ = 'products'
+
+    city = db.Column(db.TEXT)
+    chain_id = db.Column(db.TEXT, primary_key=True)
+    sub_chain_id = db.Column(db.INT, primary_key=True)
+    store_id = db.Column(db.INT, primary_key=True)
+    item_name = db.Column(db.TEXT)
+    item_price = db.Column(db.NUMERIC)
+    item_code = db.Column(db.TEXT, primary_key=True)
+    manufacturer_item_description = db.Column(db.TEXT)
+    price_update_date = db.Column(db.TIMESTAMP)
+    unit_qty = db.Column(db.TEXT)
+    item_type = db.Column(db.INT)
+    manufacturer_name = db.Column(db.TEXT)
+    manufacture_country = db.Column(db.TEXT)
+    unit_of_measure = db.Column(db.TEXT)
+    quantity = db.Column(db.NUMERIC)
+    b_is_weighted = db.Column(db.INT)
+    qty_in_package = db.Column(db.NUMERIC)
+    unit_of_measure_price = db.Column(db.NUMERIC)
+    allow_discount = db.Column(db.INT)
+    item_status = db.Column(db.INT)
+    last_update_date = db.Column(db.TEXT)
+    last_update_time = db.Column(db.TEXT)
+
+    def __repr__(self):
+        return f"Product(city='{self.city}', chain_id='{self.chain_id}', sub_chain_id={self.sub_chain_id}, store_id={self.store_id}, item_name='{self.item_name}', item_code='{self.item_code}')"

@@ -36,6 +36,18 @@ def parse_item(item_element):
             item_data[child.tag] = child.text
     return item_data
 
+def get_city_name(chain_id ,sub_chain_id ,store_id):
+    if chain_id and sub_chain_id and store_id:
+        with conn.cursor() as cursor:
+            query = sql.SQL("""
+                SELECT city FROM stores_table
+                WHERE chain_id = %s AND subchainid = %s AND storeid = %s
+            """)
+            cursor.execute(query, (chain_id, sub_chain_id, store_id))
+            result = cursor.fetchone()
+            if result:
+                return(result[0].strip())
+
 def parse_xml_file(xml_file_path):
     items = []
     try:
@@ -54,13 +66,17 @@ def parse_xml_file(xml_file_path):
         xml_items = root.findall('.//Item')
         if not xml_items:
             xml_items = root.findall('.//Product')
-        items = []
-        for item_element in xml_items:
-            item_data = parse_item(item_element)
-            item_data['ChainId'] = chain_id
-            item_data['SubChainId'] = sub_chain_id
-            item_data['StoreId'] = store_id
-            items.append(item_data)
+
+        store_city = get_city_name(chain_id ,sub_chain_id ,store_id)
+        if store_city:
+            items = []
+            for item_element in xml_items:
+                item_data = parse_item(item_element)
+                item_data['city'] = store_city
+                item_data['ChainId'] = chain_id
+                item_data['SubChainId'] = int(sub_chain_id)
+                item_data['StoreId'] = int(store_id)
+                items.append(item_data)
 
     except ET.ParseError as e:
         print(f"Error parsing XML file {xml_file_path}: {e}")
@@ -80,9 +96,10 @@ def create_table(conn):
     # SQL command to create the table if it doesn't exist
     create_table_query = f"""
         CREATE TABLE IF NOT EXISTS products (
+            city TEXT,
             chain_id TEXT,
-            sub_chain_id TEXT,
-            store_id TEXT,
+            sub_chain_id INT,
+            store_id INT,
             item_name TEXT,
             item_price NUMERIC,
             item_code TEXT,
@@ -111,7 +128,7 @@ def insert_data_to_db(items, conn):
     # Define the SQL query to insert or update data in the 'products' table
     insert_query = sql.SQL("""
         INSERT INTO products (
-            chain_id, sub_chain_id, store_id, item_name, item_price, item_code,
+            city , chain_id, sub_chain_id, store_id, item_name, item_price, item_code,
             manufacturer_item_description, price_update_date, unit_qty, item_type,
             manufacturer_name, manufacture_country, unit_of_measure, quantity,
             b_is_weighted, qty_in_package, unit_of_measure_price, allow_discount,
@@ -119,6 +136,7 @@ def insert_data_to_db(items, conn):
         ) VALUES %s
         ON CONFLICT (chain_id, sub_chain_id, store_id, item_code) 
         DO UPDATE SET
+            city = EXCLUDED.city,
             item_name = EXCLUDED.item_name,
             item_price = EXCLUDED.item_price,
             manufacturer_item_description = EXCLUDED.manufacturer_item_description,
@@ -153,6 +171,7 @@ def insert_data_to_db(items, conn):
         if item_key not in unique_items:
             unique_items.add(item_key)
             data_to_insert.append({
+                "city": item.get("city"),
                 "ChainId": item.get("ChainId"),
                 "SubChainId": item.get("SubChainId"),
                 "StoreId": item.get("StoreId"),
@@ -177,6 +196,7 @@ def insert_data_to_db(items, conn):
     # Convert data back to a list of tuples
     data_to_insert_tuples = [
         (
+            item.get("city"),
             item.get("ChainId"),
             item.get("SubChainId"),
             item.get("StoreId"),
@@ -224,4 +244,5 @@ if __name__ == "__main__":
         parse_xml_files_in_folder_to_db(folder_path,conn)
     except psycopg2.Error as e:
         print(f"Error inserting/updating data into the database: {e}")
+
     conn.close()
