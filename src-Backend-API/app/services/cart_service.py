@@ -17,23 +17,23 @@ def addToCart(data, current_user):
         existing_cart_items_dict = {item.barcode: item for item in existing_cart_items}
 
         for item in items:
-            product_name = item.get('product_name')
+            product_name = item.get('name')
             quantity = item.get('quantity')
-            barcode = item.get('barcode')
+            barcode = item.get('code')
             category = item.get('category')
 
-            if int(barcode) in existing_cart_items_dict:
+            if barcode in existing_cart_items_dict:
                 # Update the quantity of the existing cart item
-                existing_cart_item = existing_cart_items_dict[int(barcode)]
+                existing_cart_item = existing_cart_items_dict[barcode]
                 existing_cart_item.quantity = quantity
             else:
                 # Add a new cart item
                 cart_item = Cart(
                     user_email=user_email,
-                    barcode=int(barcode),
+                    barcode=barcode,
                     product_name=product_name,
                     category=category,
-                    quantity=quantity)
+                    quantity=int(quantity))
                 db.session.add(cart_item)
 
         # Commit all the changes together
@@ -45,6 +45,7 @@ def addToCart(data, current_user):
         return {'error': 'Failed to update/add cart items. Integrity constraint violation.'}, 500
     except Exception as e:
         # Log any other exceptions that occurred during the process
+        print('An error occurred while updating/adding cart items: %s', e)
         db.session.rollback()
         return {'error': 'Failed to update/add cart items'}, 500
     finally:

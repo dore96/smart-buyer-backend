@@ -28,7 +28,7 @@ class User(db.Model):
 class Cart(db.Model):
     __tablename__ = 'cart'
     user_email = db.Column(db.String(100), db.ForeignKey('users.email'), nullable=False, primary_key=True)
-    barcode = db.Column(db.Integer,nullable=False,primary_key=True)
+    barcode = db.Column(db.String(20),nullable=False,primary_key=True)
     product_name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(100), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
@@ -40,3 +40,4 @@ class Cart(db.Model):
         self.product_name = product_name
         self.quantity = quantity
         self.category = category
+

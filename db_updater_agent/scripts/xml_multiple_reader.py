@@ -37,6 +37,7 @@ def parse_item(item_element):
     return item_data
 
 def parse_xml_file(xml_file_path):
+    items = []
     try:
         tree = ET.parse(xml_file_path)
         root = tree.getroot()
@@ -137,8 +138,44 @@ def insert_data_to_db(items, conn):
             last_update_time = EXCLUDED.last_update_time
     """)
 
-    # Convert the 'items' data into a list of tuples to use with execute_values
-    data_to_insert = [
+    # Convert the 'items' data into a list of dictionaries
+    data_to_insert = []
+    unique_items = set()
+    for item in items:
+        item_key = (
+            item.get("ChainId"),
+            item.get("SubChainId"),
+            item.get("StoreId"),
+            item.get("ItemCode")
+        )
+        # Check if the item_key already exists in the unique_items set
+        # If not, add the item to the list and mark the item_key as seen
+        if item_key not in unique_items:
+            unique_items.add(item_key)
+            data_to_insert.append({
+                "ChainId": item.get("ChainId"),
+                "SubChainId": item.get("SubChainId"),
+                "StoreId": item.get("StoreId"),
+                "ItemName": item.get("ItemName"),
+                "ItemPrice": item.get("ItemPrice"),
+                "ItemCode": item.get("ItemCode"),
+                "ManufacturerItemDescription": item.get("ManufacturerItemDescription"),
+                "PriceUpdateDate": item.get("PriceUpdateDate"),
+                "UnitQty": item.get("UnitQty"),
+                "ItemType": item.get("ItemType"),
+                "ManufacturerName": item.get("ManufacturerName"),
+                "ManufactureCountry": item.get("ManufactureCountry"),
+                "UnitOfMeasure": item.get("UnitOfMeasure"),
+                "Quantity": item.get("Quantity"),
+                "bIsWeighted": item.get("bIsWeighted"),
+                "QtyInPackage": item.get("QtyInPackage"),
+                "UnitOfMeasurePrice": item.get("UnitOfMeasurePrice"),
+                "AllowDiscount": item.get("AllowDiscount"),
+                "ItemStatus": item.get("ItemStatus"),
+            })
+
+    # Convert data back to a list of tuples
+    data_to_insert_tuples = [
         (
             item.get("ChainId"),
             item.get("SubChainId"),
@@ -162,15 +199,15 @@ def insert_data_to_db(items, conn):
             datetime.now().strftime('%Y-%m-%d'),
             datetime.now().strftime('%H:%M:%S'),
         )
-        for item in items
+        for item in data_to_insert
     ]
-    # Remove duplicates from the data before inserting
-    data_to_insert = list(set(data_to_insert))
+
     try:
         # Execute the INSERT query with the data
         with conn.cursor() as cursor:
-            execute_values(cursor, insert_query, data_to_insert)
+            execute_values(cursor, insert_query, data_to_insert_tuples)
         conn.commit()
+
         print(f"Successfully inserted/updated {len(items)} items into the database.")
     except psycopg2.Error as e:
         print(f"Error inserting/updating data into the database: {e}")
