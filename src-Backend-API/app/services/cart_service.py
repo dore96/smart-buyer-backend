@@ -1,8 +1,8 @@
-from app.models import Cart, User,Product, db
+import json
+from app.models import Cart, User,Product,Store, db
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func ,text
-from flask import jsonify
-
+from sqlalchemy import func ,text, distinct, or_, desc
+from decimal import Decimal
 
 def addToCart(data, current_user):
     user_email = current_user
@@ -66,32 +66,55 @@ def getCartData(user_email):
                         for item in cart_items]
     return {'cart_items': cart_items_data}
 
+def decimal_default(obj):
+    if isinstance(obj, Decimal):
+        return float(obj)
+    raise TypeError
+
+def get_store_details(chain_id, sub_chain_id, store_id):
+    store = Store.query.filter_by(chain_id=chain_id, subchainid=sub_chain_id, storeid=store_id).first()
+    if store:
+        return {
+            'chainname': store.chainname,
+            'subchainname': store.subchainname,
+            'storename': store.storename,
+            'address': store.address,
+            'city': store.city,
+            'zipcode': store.zipcode
+        }
+    return None
+
 def get_cheapest_stores_with_cart_products(current_user_email, city):
-    # Get the 5 cheapest stores with the total sum of all products in the cart for each store
     cart_items = Cart.query.filter_by(user_email=current_user_email).all()
+    barcode_join_condition = Cart.barcode == Product.item_code
+    product_name_join_condition = Cart.product_name == Product.item_name
+    join_condition = or_(barcode_join_condition, product_name_join_condition)
 
     cheapest_stores_query = db.session.query(
         Product.chain_id, Product.sub_chain_id, Product.store_id,
-        db.func.sum(Product.item_price * Product.quantity).label('total_amount')
-    ).join(Cart, Cart.barcode == Product.item_code).filter(Product.city == city, Cart.user_email == current_user_email).group_by(Product.chain_id, Product.sub_chain_id, Product.store_id).order_by('total_amount').limit(5)
+        db.func.sum(Product.item_price * Cart.quantity).label('total_amount'),
+        db.func.count().label('items_count')
+    ).join(Cart, join_condition).filter(
+        Product.city == city,
+        Cart.user_email == current_user_email
+    ).group_by(Product.chain_id, Product.sub_chain_id, Product.store_id).order_by(desc('items_count'), 'total_amount').limit(5)
 
     cheapest_stores = cheapest_stores_query.all()
-
     results = []
     for store in cheapest_stores:
-        chain_id, sub_chain_id, store_id, total_amount = store
+        chain_id, sub_chain_id, store_id, total_amount, number_of_existing_products = store
 
         store_data = {
             'chain_id': chain_id,
             'sub_chain_id': sub_chain_id,
             'store_id': store_id,
             'total_amount': total_amount,
-            'products': []
+            'products': [],
+            'missing_item_codes': []
         }
 
-        missing_item_codes = []
-
         for cart_item in cart_items:
+            item_name = cart_item.product_name
             item_code = cart_item.barcode
             quantity = cart_item.quantity
 
@@ -102,93 +125,26 @@ def get_cheapest_stores_with_cart_products(current_user_email, city):
                 product_name, product_price = result
                 product_total_price = product_price * quantity
                 store_data['products'].append({
-                'product_name': product_name,
-                'product_price': float(product_price) if product_price is not None else None,
-                'quantity': quantity,
-                'total_price': float(product_total_price)
-            })
+                    'product_name': product_name,
+                    'product_price': float(product_price) if product_price is not None else None,
+                    'quantity': quantity,
+                    'total_price': float(product_total_price)
+                })
             else:
                 # If no matching product is found, add its item_code to the list of missing item codes
-                missing_item_codes.append(item_code)
+                store_data['missing_item_codes'].append(item_name)
 
-                # Set default values for the missing item
-                product_name = "Not Found"
-                product_price = None
-                product_total_price = 0
-
-        # Add the list of missing item codes to the store_data
-        store_data['missing_item_codes'] = missing_item_codes
-        total_amount = sum(product['total_price'] for product in store_data['products'])
-        store_data['total_amount'] = float(total_amount)
         results.append(store_data)
 
+    # Fetch store details for each cheap store and add them to the store data
+    for store_data in results:
+        store_details = get_store_details(store_data['chain_id'], store_data['sub_chain_id'], store_data['store_id'])
+        if store_details:
+            store_data.update(store_details)
 
-    return jsonify(results)
+     # Use json.dumps() with indent parameter to present the JSON response with indentation
+    formatted_response = json.dumps(results, indent=4, ensure_ascii=False, default=decimal_default)
+    # Convert the cleaned string to a Python object
+    cheapest_stores_data = json.loads(formatted_response)
 
-
-# def getCheapestStores(user_email, city):
-#     # Retrieve the user's cart items
-#     cart_items = Cart.query.filter_by(user_email=user_email).all()
-
-#     # Get the list of products' barcode or name in the user's cart
-#     products_data = [{'barcode': item.barcode, 'name': item.product_name} for item in cart_items]
-
-#     # Retrieve the corresponding products from the products table
-#     products_in_cart = db.session.query(func.min(Cart.product_name).label('product_name'), Cart.barcode).filter(
-#         Cart.user_email == user_email,
-#         func.coalesce(Cart.barcode, Cart.product_name).in_([item['barcode'] or item['name'] for item in products_data])
-#     ).group_by(Cart.barcode).all()
-
-#     # Get the barcode and name of products that exist in the cart
-#     products_dict = {item.barcode: item.product_name for item in products_in_cart}
-
-#     # Formulate the SQL query to search for stores with the products in the user's cart and within the specific city
-#     query = text("""
-#         SELECT s.chain_id, s.subchainid, s.storeid, s.storename, s.city, p.item_name, p.item_price
-#         FROM products p
-#         JOIN stores_table s ON p.chain_id = s.chain_id AND CAST(p.sub_chain_id AS BIGINT) = s.subchainid AND CAST(p.store_id AS BIGINT) = s.storeid
-#         WHERE p.item_name IN :product_names
-#         AND s.city = :city
-#         GROUP BY s.chain_id, s.subchainid, s.storeid, p.item_name, p.item_price
-#         HAVING SUM(p.quantity) >= 0.8 * (
-#             SELECT SUM(c.quantity) 
-#             FROM cart c
-#             JOIN products p2 ON c.barcode = p2.item_code OR c.product_name = p2.item_name
-#             WHERE c.user_email = :user_email 
-#             AND p2.chain_id = s.chain_id
-#             AND CAST(p2.sub_chain_id AS BIGINT) = s.subchainid
-#             AND CAST(p2.store_id AS BIGINT) = s.storeid
-#         )
-#         ORDER BY p.item_price ASC
-#         LIMIT 5
-#     """)
-
-#     # Execute the SQL query with the products, user_email, and city as parameters
-#     product_names_tuple = tuple(products_dict.values())
-#     cheapest_stores = db.session.execute(query, {
-#         'product_names': product_names_tuple,
-#         'user_email': user_email,
-#         'city': city
-#         })
-
-#     # Process the results and get the cheapest stores with products and total amount to pay
-#     stores_data = {}
-#     for store in cheapest_stores:
-#         store_key = (store.chain_id, store.subchainid, store.storeid)
-#         if store_key not in stores_data:
-#             stores_data[store_key] = {
-#                 'chain_id': store.chain_id,
-#                 'subchainid': store.subchainid,
-#                 'storeid': store.storeid,
-#                 'storename': store.storename,
-#                 'city': store.city,
-#                 'products': [],
-#                 'total_amount': 0
-#             }
-#         stores_data[store_key]['products'].append({
-#             'item_name': store.item_name,
-#             'item_price': store.item_price
-#         })
-#         stores_data[store_key]['total_amount'] += store.item_price
-
-#     return {'cheapest_stores': list(stores_data.values())}
+    return cheapest_stores_data

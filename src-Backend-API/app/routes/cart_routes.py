@@ -2,7 +2,6 @@ from flask import Blueprint, request, jsonify
 from app.services.cart_service import addToCart, getCartData,get_cheapest_stores_with_cart_products
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-
 cart_api = Blueprint('cart_api', __name__)
 
 @cart_api.route('/cart', methods=['GET', 'POST'])

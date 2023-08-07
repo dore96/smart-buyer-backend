@@ -69,3 +69,27 @@ class Product(db.Model):
 
     def __repr__(self):
         return f"Product(city='{self.city}', chain_id='{self.chain_id}', sub_chain_id={self.sub_chain_id}, store_id={self.store_id}, item_name='{self.item_name}', item_code='{self.item_code}')"
+    
+class Store(db.Model):
+    __tablename__ = 'stores_table'
+
+    chainname = db.Column(db.String(255), nullable=False)
+    subchainname = db.Column(db.String(255), nullable=False)
+    storename = db.Column(db.String(255), nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    city = db.Column(db.String(255), nullable=False)
+    zipcode = db.Column(db.BigInteger, nullable=False)
+    chain_id = db.Column(db.String(255), primary_key=True)
+    subchainid = db.Column(db.BigInteger, primary_key=True)
+    storeid = db.Column(db.BigInteger, primary_key=True)
+
+    def __init__(self, chainname, subchainname, storename, address, city, zipcode, chain_id, subchainid, storeid):
+        self.chainname = chainname
+        self.subchainname = subchainname
+        self.storename = storename
+        self.address = address
+        self.city = city
+        self.zipcode = zipcode
+        self.chain_id = chain_id
+        self.subchainid = subchainid
+        self.storeid = storeid
