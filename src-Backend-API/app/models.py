@@ -41,3 +41,55 @@ class Cart(db.Model):
         self.quantity = quantity
         self.category = category
 
+class Product(db.Model):
+    __tablename__ = 'products'
+
+    city = db.Column(db.TEXT)
+    chain_id = db.Column(db.TEXT, primary_key=True)
+    sub_chain_id = db.Column(db.INT, primary_key=True)
+    store_id = db.Column(db.INT, primary_key=True)
+    item_name = db.Column(db.TEXT)
+    item_price = db.Column(db.NUMERIC)
+    item_code = db.Column(db.TEXT, primary_key=True)
+    manufacturer_item_description = db.Column(db.TEXT)
+    price_update_date = db.Column(db.TIMESTAMP)
+    unit_qty = db.Column(db.TEXT)
+    item_type = db.Column(db.INT)
+    manufacturer_name = db.Column(db.TEXT)
+    manufacture_country = db.Column(db.TEXT)
+    unit_of_measure = db.Column(db.TEXT)
+    quantity = db.Column(db.NUMERIC)
+    b_is_weighted = db.Column(db.INT)
+    qty_in_package = db.Column(db.NUMERIC)
+    unit_of_measure_price = db.Column(db.NUMERIC)
+    allow_discount = db.Column(db.INT)
+    item_status = db.Column(db.INT)
+    last_update_date = db.Column(db.TEXT)
+    last_update_time = db.Column(db.TEXT)
+
+    def __repr__(self):
+        return f"Product(city='{self.city}', chain_id='{self.chain_id}', sub_chain_id={self.sub_chain_id}, store_id={self.store_id}, item_name='{self.item_name}', item_code='{self.item_code}')"
+    
+class Store(db.Model):
+    __tablename__ = 'stores_table'
+
+    chainname = db.Column(db.String(255), nullable=False)
+    subchainname = db.Column(db.String(255), nullable=False)
+    storename = db.Column(db.String(255), nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    city = db.Column(db.String(255), nullable=False)
+    zipcode = db.Column(db.BigInteger, nullable=False)
+    chain_id = db.Column(db.String(255), primary_key=True)
+    subchainid = db.Column(db.BigInteger, primary_key=True)
+    storeid = db.Column(db.BigInteger, primary_key=True)
+
+    def __init__(self, chainname, subchainname, storename, address, city, zipcode, chain_id, subchainid, storeid):
+        self.chainname = chainname
+        self.subchainname = subchainname
+        self.storename = storename
+        self.address = address
+        self.city = city
+        self.zipcode = zipcode
+        self.chain_id = chain_id
+        self.subchainid = subchainid
+        self.storeid = storeid
