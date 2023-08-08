@@ -69,7 +69,6 @@ class Product(db.Model):
 
     def __repr__(self):
         return f"Product(city='{self.city}', chain_id='{self.chain_id}', sub_chain_id={self.sub_chain_id}, store_id={self.store_id}, item_name='{self.item_name}', item_code='{self.item_code}')"
-    
 class Store(db.Model):
     __tablename__ = 'stores_table'
 
