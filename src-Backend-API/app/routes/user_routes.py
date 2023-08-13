@@ -8,7 +8,7 @@ user_api = Blueprint('user_api', __name__)
 def createUserRequestHandler():
     return createUser(request.json)
 
-@user_api.route('/user/login', methods=['GET'])
+@user_api.route('/user/login', methods=['POST'])
 def userLoginHandler():
     data = request.json
     email = data.get('email')

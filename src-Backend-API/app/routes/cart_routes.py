@@ -15,7 +15,7 @@ def cart():
     if request.method == 'GET':
         return getCartData(current_user_email)
     
-@cart_api.route('/cart/calculate', methods=['GET'])
+@cart_api.route('/cart/calculate', methods=['POST'])
 @jwt_required() 
 def cart_calculation():
     try:
