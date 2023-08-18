@@ -4,7 +4,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy import func ,text, distinct, or_, desc
 from decimal import Decimal
 
-def addToCart(data, current_user):
+def saveCart(data, current_user):
     user_email = current_user
 
     # Check if the user exists
@@ -18,6 +18,8 @@ def addToCart(data, current_user):
         # Retrieve existing cart items for the user
         existing_cart_items = Cart.query.filter_by(user_email=user_email).all()
         existing_cart_items_dict = {item.barcode: item for item in existing_cart_items}
+
+        current_cart_barcodes = []
 
         for item in items:
             product_name = item.get('name')
@@ -38,6 +40,13 @@ def addToCart(data, current_user):
                     category=category,
                     quantity=int(quantity))
                 db.session.add(cart_item)
+
+            current_cart_barcodes.append(barcode)
+        
+        # Remove cart items not in the data
+        for barcode in existing_cart_items_dict:
+            if barcode not in current_cart_barcodes:
+                db.session.delete(existing_cart_items_dict[barcode])
 
         # Commit all the changes together
         db.session.commit()
@@ -62,7 +71,7 @@ def getCartData(user_email):
 
     # Retrieve the user's cart items
     cart_items = Cart.query.filter_by(user_email=user.email).all()
-    cart_items_data = [{'product_name': item.product_name, 'quantity': item.quantity, 'barcode': item.barcode, 'category': item.category}
+    cart_items_data = [{'id': item.barcode , 'name': item.product_name, 'quantity': item.quantity, 'code': item.barcode, 'category': item.category}
                         for item in cart_items]
     return {'cart_items': cart_items_data}
 

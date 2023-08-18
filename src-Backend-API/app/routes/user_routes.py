@@ -29,6 +29,11 @@ def userLogoutHandler():
     current_user = get_jwt_identity()
     return jsonify(message="Logout successful", user=current_user), 200
 
+@user_api.route('/user/verify-token', methods=['GET'])
+@jwt_required()
+def verify_token():
+    current_user = get_jwt_identity()
+    return jsonify({'isValid': True, 'user': current_user}), 200
 
 @user_api.route('/user', methods=['DELETE'])
 @jwt_required()  

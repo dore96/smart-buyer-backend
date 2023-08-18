@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.services.cart_service import addToCart, getCartData,get_cheapest_stores_with_cart_products
+from app.services.cart_service import saveCart, getCartData,get_cheapest_stores_with_cart_products
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
 cart_api = Blueprint('cart_api', __name__)
@@ -10,7 +10,7 @@ def cart():
     current_user_email = get_jwt_identity()
     if request.method == 'POST':
         data = request.json
-        return addToCart(data,current_user_email)
+        return saveCart(data,current_user_email)
 
     if request.method == 'GET':
         return getCartData(current_user_email)
@@ -31,7 +31,7 @@ def cart_calculation():
             return {'error': 'City and cart items data not provided in the request'}, 400
 
         # Update cart items for the user
-        response = addToCart(data, current_user_email)
+        response = saveCart(data, current_user_email)
 
         # Calculate cheapest stores with 80%+ of the products in the user's cart within the specific city
         cheapest_stores = get_cheapest_stores_with_cart_products(current_user_email, city)
