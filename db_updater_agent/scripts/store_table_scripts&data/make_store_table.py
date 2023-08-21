@@ -9,7 +9,9 @@ chains_id_map ={
     "זול ובגדול" : "7290058173198",
     "ויקטורי" : "7290696200003",
     "מחסני השוק" : "7290661400001",
-    "סופר ברקת" : "7290875100001"
+    "סופר ברקת" : "7290875100001",
+    "יינות ביתן": "7290725900003",
+    "מגה בעיר" : "7290055700007"
 }
 
 # PostgreSQL connection settings
@@ -52,6 +54,8 @@ def parse_and_insert_stores_db(root, conn,table_name, chain_id):
         rami_levi_data_insertion(root, conn,table_name, chain_id)
     elif chain_id == chains_id_map["ויקטורי"] or chain_id == chains_id_map["מחסני השוק"] or chain_id == chains_id_map["סופר ברקת"]:
         victory_data_insert(root, conn,table_name, chain_id)
+    elif chain_id == chains_id_map["יינות ביתן"] or chain_id == chains_id_map["מגה בעיר"]:
+        yeynot_bitan_data_insert(root, conn,table_name, chain_id)
 
 def insert_data(conn, table_name, data):
     # SQL command to insert data into the table
@@ -127,6 +131,28 @@ def victory_data_insert(root, conn, table_name, chain_id):
             data["chainname"] = data["subchainname"] = "סופר ברקת"
         insert_data(conn, table_name, data)
 
+def yeynot_bitan_data_insert(root, conn,table_name, chain_id):
+    subchains = root.findall(".//SubChain")
+    
+    for subchain in subchains:
+        subchain_id = safe_convert_int(subchain.findtext("SubChainId"))
+        subchain_name = subchain.findtext("SubChainName")
+        stores = subchain.findall(".//Store")
+        
+        for store in stores:
+            data = {
+                "chain_id": chain_id,
+                "subchainid": subchain_id,
+                "storeid": safe_convert_int(store.findtext("StoreId")),
+                "chainname": root.findtext("ChainName"),
+                "subchainname": root.findtext("ChainName"),
+                "storename": store.findtext("StoreName"),
+                "address": store.findtext("Address"),
+                "city": store.findtext("City"),
+                "zipcode": safe_convert_int(store.findtext("ZipCode"))
+            }
+            insert_data(conn, table_name, data)
+
 def get_chain_id(xml_path):
     # Use regular expression to find the number that comes after "Stores" and before the first "-"
     pattern = r"Stores(?:Full)?(\d+)"
@@ -154,8 +180,9 @@ def main(xml_file):
         print(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python xml_reader.py <xml_file_path>")
-    else:
-        xml_file_path = sys.argv[1]
-        main(xml_file_path)
+    # if len(sys.argv) != 2:
+    #     print("Usage: python xml_reader.py <xml_file_path>")
+    # else:
+    #     xml_file_path = sys.argv[1]
+    #     main(xml_file_path)
+    main(r'C:\Users\dored\Desktop\SmartBuyer-Backend\smart-buyer-backend\db_updater_agent\scripts\store_table_scripts&data\stores_xml\Stores7290055700007-202308210001.xml')

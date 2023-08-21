@@ -3,6 +3,7 @@ import jwt
 from datetime import datetime, timedelta
 from app.models import User, db
 import os
+import re
 
 def format_user(user):
     return {
@@ -17,6 +18,10 @@ def createUser(data):
     last_name = data.get('last_name')
     email = data.get('email')
     password = data.get('password')
+
+    # Check if a user email is a valid email
+    if not re.match(r'^[a-zA-Z0-9.!#$%&*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$', email):
+        return {'error': 'Invalid email'}, 400
 
     # Check if a user with the same email already exists
     existing_user = User.query.filter_by(email=email).first()

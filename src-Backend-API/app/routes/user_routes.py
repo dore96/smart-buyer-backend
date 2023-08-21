@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from app.services.user_service import createUser,authenticate_user, deleteUser
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, create_access_token
 
 user_api = Blueprint('user_api', __name__)
 
@@ -29,11 +29,15 @@ def userLogoutHandler():
     current_user = get_jwt_identity()
     return jsonify(message="Logout successful", user=current_user), 200
 
-@user_api.route('/user/verify-token', methods=['GET'])
+@user_api.route('/user/refresh-token', methods=['GET'])
 @jwt_required()
-def verify_token():
+def refresh_token():
     current_user = get_jwt_identity()
-    return jsonify({'isValid': True, 'user': current_user}), 200
+
+    # Generate a new access token for the current user
+    new_token = create_access_token(identity=current_user)
+
+    return jsonify({'token': new_token}), 200
 
 @user_api.route('/user', methods=['DELETE'])
 @jwt_required()  
