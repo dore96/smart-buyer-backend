@@ -44,6 +44,7 @@ def process_data_and_insert_into_db(web_scraping_script_path_map,xml_data_folder
 
 def main():
     web_scraping_script_path_map = {
+        "mega": rf'{web_scrapers_scripts_path}\mega_web_scraper.py',
         "yeynot_bitan": rf'{web_scrapers_scripts_path}\yeynot_bitan_web_scraper.py',
         "shufersal": rf'{web_scrapers_scripts_path}\shufersal_xml_web_scraper.py',
         "zol_begadol": rf'{web_scrapers_scripts_path}\zol_begadol_web_scraper.py',
@@ -51,6 +52,7 @@ def main():
         "victory" : rf'{web_scrapers_scripts_path}\victory_web_scraper.py'
     }
     website_url_map = {
+        "mega": "https://publishprice.mega.co.il/",
         "yeynot_bitan": "http://publishprice.ybitan.co.il/",
         "victory" : "http://matrixcatalog.co.il/NBCompetitionRegulations.aspx",
         "rami_levi": "https://url.retail.publishedprices.co.il/login",

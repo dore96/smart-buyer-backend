@@ -5,9 +5,8 @@ import requests
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.support.ui import Select
-from selenium.webdriver.support.ui import WebDriverWait
 from gz_directory_extractor import extract_files_from_folder
+import datetime
 
 def configure_chrome_options(download_directory):
     chrome_options = Options()
@@ -49,19 +48,25 @@ def download_files(driver, download_directory):
     except Exception as e:
         print(f"Error: {e}")
 
-def yeynot_bitan_levi_web_scraper(download_directory, url):
+def mega_web_scraper(download_directory, url):
     chrome_options = configure_chrome_options(download_directory)
     driver = webdriver.Chrome(options=chrome_options)
-    driver.get(url)
 
-    # Find the second <tr> element in the table body
-    second_row = driver.find_elements(By.XPATH, '//tbody/tr')[3]
+    # Get the current date
+    current_date = datetime.datetime.now()
 
-    # Find the link within the second row and click on it
-    link = second_row.find_element(By.XPATH, './/td[@class="name"]/a')
-    link.click()
+    # Subtract one day from the current date
+    previous_date = current_date - datetime.timedelta(days=1)
 
-    time.sleep(5)
+    # Format the previous date as "yyyymmdd"
+    date_stamp = previous_date.strftime("%Y%m%d")
+
+    # Append the date stamp to the base URL
+    url_with_date = url + date_stamp
+
+    # Navigate to the URL with the appended date stamp
+    driver.get(url_with_date)
+
     download_files(driver, download_directory)
     time.sleep(10)
     driver.quit()
@@ -73,7 +78,7 @@ def main():
     args = parser.parse_args()
 
     try:
-        yeynot_bitan_levi_web_scraper(args.output_folder, args.url)
+        mega_web_scraper(args.output_folder, args.url)
         extract_files_from_folder(args.output_folder, False)
     except Exception as e:
         print(f"An error occurred: {e}")

@@ -233,16 +233,22 @@ def insert_data_to_db(items, conn):
         print(f"Error inserting/updating data into the database: {e}")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Web scraping script for shufersal")
-    parser.add_argument("--input_folder", required=True, help="The download directory")
-    args = parser.parse_args()
-    folder_path = args.input_folder
+    # parser = argparse.ArgumentParser(description="Web scraping script for shufersal")
+    # parser.add_argument("--input_folder", required=True, help="The download directory")
+    # args = parser.parse_args()
+    # folder_path = args.input_folder
+    # try:
+    #     # Connect to the PostgreSQL database
+    #     conn = psycopg2.connect(**db_settings)
+    #     create_table(conn)
+    #     parse_xml_files_in_folder_to_db(folder_path,conn)
+    # except psycopg2.Error as e:
+    #     print(f"Error inserting/updating data into the database: {e}")
     try:
         # Connect to the PostgreSQL database
         conn = psycopg2.connect(**db_settings)
         create_table(conn)
-        parse_xml_files_in_folder_to_db(folder_path,conn)
+        parse_xml_files_in_folder_to_db(r'C:\Users\dored\Desktop\SmartBuyer-Backend\xml_data\mega_xmls',conn)
     except psycopg2.Error as e:
         print(f"Error inserting/updating data into the database: {e}")
-
     conn.close()
