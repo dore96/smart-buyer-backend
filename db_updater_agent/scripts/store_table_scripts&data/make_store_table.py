@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import psycopg2
 import sys
 import re
+from ...config import db_settings
 
 chains_id_map ={
     "שופרסל" :  "7290027600007",
@@ -12,14 +13,6 @@ chains_id_map ={
     "סופר ברקת" : "7290875100001",
     "יינות ביתן": "7290725900003",
     "מגה בעיר" : "7290055700007"
-}
-
-# PostgreSQL connection settings
-db_settings = {
-    "host": "127.0.0.1",
-    "database": "smart_buyer_db",
-    "user": "postgres",
-    "password": "De9654",
 }
 
 def create_table(conn, table_name):
@@ -180,9 +173,8 @@ def main(xml_file):
         print(f"An error occurred: {str(e)}")
 
 if __name__ == "__main__":
-    # if len(sys.argv) != 2:
-    #     print("Usage: python xml_reader.py <xml_file_path>")
-    # else:
-    #     xml_file_path = sys.argv[1]
-    #     main(xml_file_path)
-    main(r'C:\Users\dored\Desktop\SmartBuyer-Backend\smart-buyer-backend\db_updater_agent\scripts\store_table_scripts&data\stores_xml\Stores7290055700007-202308210001.xml')
+    if len(sys.argv) != 2:
+        print("Usage: python xml_reader.py <xml_file_path>")
+    else:
+        xml_file_path = sys.argv[1]
+        main(xml_file_path)

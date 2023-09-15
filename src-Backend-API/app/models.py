@@ -1,9 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import bcrypt
+from sqlalchemy import NullPool
 
-db = SQLAlchemy()
+# Initialize SQLAlchemy with NullPool session options
+db = SQLAlchemy(session_options={'bind': NullPool})
 
+# User Model - Represents user information
 class User(db.Model):
     __tablename__ = 'users'
     first_name = db.Column(db.String(50), nullable=False)
@@ -22,11 +25,15 @@ class User(db.Model):
         self.set_password(password)  # Hash the password and store it
 
     def set_password(self, password):
-        # Hash the provided password and store it in the password field
+        # Hash the provided password before storing it in the database
         self.password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
 
+
+# Cart Model - Represents user shopping cart
 class Cart(db.Model):
     __tablename__ = 'cart'
+
+    # Cart attributes
     user_email = db.Column(db.String(100), db.ForeignKey('users.email'), nullable=False, primary_key=True)
     barcode = db.Column(db.String(20),nullable=False,primary_key=True)
     product_name = db.Column(db.String(100), nullable=False)
@@ -41,9 +48,11 @@ class Cart(db.Model):
         self.quantity = quantity
         self.category = category
 
+# Product Model - Represents product information
 class Product(db.Model):
     __tablename__ = 'products'
 
+    # Product attributes
     city = db.Column(db.TEXT)
     chain_id = db.Column(db.TEXT, primary_key=True)
     sub_chain_id = db.Column(db.INT, primary_key=True)
@@ -70,8 +79,12 @@ class Product(db.Model):
     def __repr__(self):
         return f"Product(city='{self.city}', chain_id='{self.chain_id}', sub_chain_id={self.sub_chain_id}, store_id={self.store_id}, item_name='{self.item_name}', item_code='{self.item_code}')"
     
+    
+# Store Model - Represents store information
 class Store(db.Model):
     __tablename__ = 'stores_table'
+
+    # Store attributes
 
     chainname = db.Column(db.String(255), nullable=False)
     subchainname = db.Column(db.String(255), nullable=False)

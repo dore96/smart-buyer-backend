@@ -1,0 +1,7 @@
+Flask==2.3.2
+Flask_Cors==4.0.0
+Flask_JWT_Extended==4.5.2
+flask_sqlalchemy==3.0.5
+PyJWT==2.8.0
+bcrypt==4.0.1
+SQLAlchemy==2.0.19

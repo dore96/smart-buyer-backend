@@ -2,7 +2,6 @@ import bcrypt
 import jwt
 from datetime import datetime, timedelta
 from app.models import User, db
-import os
 import re
 
 def format_user(user):
@@ -13,7 +12,7 @@ def format_user(user):
         "created_at": user.created_at
     }
 
-def createUser(data):
+def create_user(data):
     first_name = data.get('first_name')
     last_name = data.get('last_name')
     email = data.get('email')
@@ -53,7 +52,7 @@ def authenticate_user(email, password):
 
     return None
 
-def deleteUser(user_email):
+def delete_user(user_email):
     # Check if the user with the given user_id exists in the database
     user = User.query.filter_by(email=user_email).first()
     if not user:

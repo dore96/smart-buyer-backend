@@ -118,7 +118,6 @@ def main():
     args = parser.parse_args()
 
     scrape_website(args.output_folder, args.url)
-    # scrape_website("C:\\Users\\dored\\Desktop\\smart buyer backend\\xml_data\\shofersal_xml", "http://prices.shufersal.co.il/")
 
 if __name__ == "__main__":
     main()

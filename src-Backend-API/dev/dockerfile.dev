@@ -1,0 +1,23 @@
+# Use an official Python runtime as the base image
+FROM python:3.8-slim
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy the requirements_dev file into the container
+COPY requirements_dev.txt /app/
+
+# Install any needed packages specified in requirements_dev.txt
+RUN pip install --no-cache-dir -r requirements_dev.txt
+
+# Copy the contents of the parent directory into the container
+COPY ../ /app/
+
+# Specify environment variables if necessary
+ENV FLASK_APP=run.py
+ENV FLASK_ENV=production
+
+# Expose the port the app runs on (not needed for Heroku)
+EXPOSE 5000
+
+CMD flask run.py --host 0.0.0.0 --port 5000

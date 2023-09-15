@@ -6,16 +6,18 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 from psycopg2 import sql
 from psycopg2.extras import execute_values
-
-# PostgreSQL connection settings
-db_settings = {
-    "host": "127.0.0.1",
-    "database": "smart_buyer_db",
-    "user": "postgres",
-    "password": "De9654",
-}
+from ..config import db_settings
 
 def parse_item(item_element):
+    """
+    Parse an XML item element and extract relevant data.
+
+    Args:
+        item_element (xml.etree.Element): The XML item element.
+
+    Returns:
+        dict: A dictionary containing extracted item data.
+    """
     item_data = {}
     for child in item_element:
         if child.tag in ['ItemName', 'ItemNm']:
@@ -37,6 +39,17 @@ def parse_item(item_element):
     return item_data
 
 def get_city_name(chain_id ,sub_chain_id ,store_id):
+    """
+    Retrieve the city name for a given chain, sub-chain, and store IDs.
+
+    Args:
+        chain_id (str): The chain ID.
+        sub_chain_id (str): The sub-chain ID.
+        store_id (str): The store ID.
+
+    Returns:
+        str: The city name associated with the provided IDs.
+    """
     if chain_id and sub_chain_id and store_id:
         with conn.cursor() as cursor:
             query = sql.SQL("""
@@ -49,6 +62,15 @@ def get_city_name(chain_id ,sub_chain_id ,store_id):
                 return(result[0].strip())
 
 def parse_xml_file(xml_file_path):
+    """
+    Parse an XML file and extract item data.
+
+    Args:
+        xml_file_path (str): The path to the XML file.
+
+    Returns:
+        list: A list of dictionaries containing extracted item data.
+    """
     items = []
     try:
         tree = ET.parse(xml_file_path)
@@ -86,6 +108,13 @@ def parse_xml_file(xml_file_path):
     return items
 
 def parse_xml_files_in_folder_to_db(folder_path,conn):
+    """
+    Parse XML files in a folder and insert the extracted data into the database.
+
+    Args:
+        folder_path (str): The path to the folder containing XML files.
+        conn (psycopg2.extensions.connection): The database connection.
+    """
     for file_name in os.listdir(folder_path):
         if file_name.endswith(".xml"):
             xml_file_path = os.path.join(folder_path, file_name)
@@ -93,6 +122,12 @@ def parse_xml_files_in_folder_to_db(folder_path,conn):
             insert_data_to_db(items,conn)
 
 def create_table(conn):
+    """
+    Create the 'products' table in the database if it doesn't exist.
+
+    Args:
+        conn (psycopg2.extensions.connection): The database connection.
+    """
     # SQL command to create the table if it doesn't exist
     create_table_query = f"""
         CREATE TABLE IF NOT EXISTS products (
@@ -125,6 +160,13 @@ def create_table(conn):
     conn.commit()
 
 def insert_data_to_db(items, conn):
+    """
+    Insert or update data into the 'products' table in the database.
+
+    Args:
+        items (list): A list of dictionaries containing item data.
+        conn (psycopg2.extensions.connection): The database connection.
+    """
     # Define the SQL query to insert or update data in the 'products' table
     insert_query = sql.SQL("""
         INSERT INTO products (
@@ -233,22 +275,15 @@ def insert_data_to_db(items, conn):
         print(f"Error inserting/updating data into the database: {e}")
 
 if __name__ == "__main__":
-    # parser = argparse.ArgumentParser(description="Web scraping script for shufersal")
-    # parser.add_argument("--input_folder", required=True, help="The download directory")
-    # args = parser.parse_args()
-    # folder_path = args.input_folder
-    # try:
-    #     # Connect to the PostgreSQL database
-    #     conn = psycopg2.connect(**db_settings)
-    #     create_table(conn)
-    #     parse_xml_files_in_folder_to_db(folder_path,conn)
-    # except psycopg2.Error as e:
-    #     print(f"Error inserting/updating data into the database: {e}")
+    parser = argparse.ArgumentParser(description="Web scraping script for shufersal")
+    parser.add_argument("--input_folder", required=True, help="The download directory")
+    args = parser.parse_args()
+    folder_path = args.input_folder
     try:
         # Connect to the PostgreSQL database
         conn = psycopg2.connect(**db_settings)
         create_table(conn)
-        parse_xml_files_in_folder_to_db(r'C:\Users\dored\Desktop\SmartBuyer-Backend\xml_data\mega_xmls',conn)
+        parse_xml_files_in_folder_to_db(folder_path,conn)
     except psycopg2.Error as e:
         print(f"Error inserting/updating data into the database: {e}")
     conn.close()

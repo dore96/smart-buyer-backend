@@ -1,4 +1,4 @@
-from app.models import Cart, User,Product,Store, db
+from app.models import Store, db
 
 def get_chains_ids():
     # Query the stores_table to get all chains and their data
@@ -139,7 +139,6 @@ def get_store_data_by_city(city_name):
                         'address': store.address,
                         'zipcode': store.zipcode,
                         'sub_chain_id': store.subchainid
-                        # Add more store attributes here if needed
                     }
                     subchain_data['stores'].append(store_data)
                     chain_data['subchains'].append(subchain_data)
@@ -165,7 +164,6 @@ def get_store_data_by_city(city_name):
                 'address': store.address,
                 'zipcode': store.zipcode,
                 'sub_chain_id': store.subchainid
-                # Add more store attributes here if needed
             }
             subchain_data['stores'].append(store_data)
             chain_data['subchains'].append(subchain_data)

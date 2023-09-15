@@ -1,15 +1,6 @@
 import psycopg2
 import json
-import codecs
-
-# Database connection parameters
-db_settings = {
-    "host": "127.0.0.1",
-    "database": "smart_buyer_db",
-    "user": "postgres",
-    "password": "De9654",
-    "client_encoding": "utf-8",
-}
+from ...config import db_settings
 
 # Connect to the database
 conn = psycopg2.connect(**db_settings)
