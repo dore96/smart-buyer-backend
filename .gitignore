@@ -2,7 +2,7 @@
 dev/
 usefull_data/
 db_updater_agent/scripts/const_product_scripts/
-
+src-Backend-API/dev
 
 # Ignore secret config files
 config.py
